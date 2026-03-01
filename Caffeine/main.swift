@@ -32,21 +32,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         print("Caffeine started - click the cup icon to toggle")
     }
     
-    func setupMenu() {
-        let menu = NSMenu()
-        
-        let quitItem = NSMenuItem(
-            title: "Quit",
-            action: #selector(quit),
-            keyEquivalent: "q"
-        )
-        quitItem.target = self
-        menu.addItem(quitItem)
-    }
-    
     @objc func statusBarButtonClicked(_ sender: NSStatusBarButton) {
-        let event = NSApp.currentEvent!
-        
+        guard let event = NSApp.currentEvent else { return }
+
         if event.type == .rightMouseUp {
             // Right click - show menu
             let menu = NSMenu()
@@ -91,7 +79,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             updateIcon(active: false)
         }
         
-        setupMenu()
     }
     
     func updateIcon(active: Bool) {
