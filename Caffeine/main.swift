@@ -27,8 +27,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         button.action = #selector(statusBarButtonClicked(_:))
         button.sendAction(on: [.leftMouseUp, .rightMouseUp])
         
-        // Setup right-click menu (for quit)
-        setupMenu()
+        // Note: We don't assign menu to statusItem to allow custom click handling
         
         print("Caffeine started - click the cup icon to toggle")
     }
@@ -43,8 +42,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         )
         quitItem.target = self
         menu.addItem(quitItem)
-        
-        statusItem.menu = menu
     }
     
     @objc func statusBarButtonClicked(_ sender: NSStatusBarButton) {
@@ -52,7 +49,17 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         
         if event.type == .rightMouseUp {
             // Right click - show menu
+            let menu = NSMenu()
+            let quitItem = NSMenuItem(
+                title: "Quit",
+                action: #selector(quit),
+                keyEquivalent: "q"
+            )
+            quitItem.target = self
+            menu.addItem(quitItem)
+            statusItem.menu = menu
             statusItem.button?.performClick(nil)
+            statusItem.menu = nil
         } else {
             // Left click - toggle sleep
             toggleSleep()
