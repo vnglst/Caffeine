@@ -18,7 +18,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             return
         }
         
-        // Configure the button with coffee cup icon
+        // Configure the button with SF Symbol coffee cup icon
         button.image = NSImage(systemSymbolName: "cup.and.saucer", accessibilityDescription: "Caffeine")
         button.image?.size = NSSize(width: 18, height: 18)
         
