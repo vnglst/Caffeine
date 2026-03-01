@@ -18,10 +18,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             return
         }
         
-        // Configure the button
-        button.image = NSImage(systemSymbolName: "zzz", accessibilityDescription: "Sleep")
+        // Configure the button with coffee cup icon
+        button.image = NSImage(systemSymbolName: "cup.and.saucer", accessibilityDescription: "Caffeine")
         button.image?.size = NSSize(width: 18, height: 18)
-        button.imagePosition = .imageLeft
         
         setupMenu()
         
@@ -32,7 +31,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         let menu = NSMenu()
         
         let toggleItem = NSMenuItem(
-            title: isPreventingSleep ? "☕ Disable (Allow Sleep)" : "☕ Enable (Prevent Sleep)",
+            title: isPreventingSleep ? "Disable (Allow Sleep)" : "Enable (Prevent Sleep)",
             action: #selector(toggleSleep),
             keyEquivalent: ""
         )
@@ -82,8 +81,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     
     func updateIcon(active: Bool) {
         if let button = statusItem.button {
-            let symbolName = active ? "cup.and.saucer.fill" : "zzz"
-            button.image = NSImage(systemSymbolName: symbolName, accessibilityDescription: active ? "Active" : "Sleep")
+            let symbolName = active ? "cup.and.saucer.fill" : "cup.and.saucer"
+            button.image = NSImage(systemSymbolName: symbolName, accessibilityDescription: active ? "Active" : "Inactive")
             button.image?.size = NSSize(width: 18, height: 18)
         }
     }

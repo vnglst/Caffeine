@@ -16,7 +16,15 @@ echo "Building $APP_NAME..."
 rm -rf "$BUILD_DIR"
 mkdir -p "$MACOS_DIR" "$RESOURCES_DIR"
 
+# Compile iconset to icns
+echo "Compiling app icon..."
+ICONSET_DIR=$(mktemp -d)
+cp -r "Caffeine/Assets.xcassets/AppIcon.appiconset" "$ICONSET_DIR/AppIcon.iconset"
+iconutil -c icns -o "$RESOURCES_DIR/AppIcon.icns" "$ICONSET_DIR/AppIcon.iconset"
+rm -rf "$ICONSET_DIR"
+
 # Compile the Swift code
+echo "Compiling app..."
 swiftc \
     -o "$MACOS_DIR/$APP_NAME" \
     -framework Cocoa \
