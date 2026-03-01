@@ -22,23 +22,19 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         button.image = NSImage(systemSymbolName: "cup.and.saucer", accessibilityDescription: "Caffeine")
         button.image?.size = NSSize(width: 18, height: 18)
         
+        // Add click handler to toggle on click
+        button.target = self
+        button.action = #selector(statusBarButtonClicked(_:))
+        button.sendAction(on: [.leftMouseUp, .rightMouseUp])
+        
+        // Setup right-click menu (for quit)
         setupMenu()
         
-        print("Caffeine started - look for the Zzz icon in your menu bar")
+        print("Caffeine started - click the cup icon to toggle")
     }
     
     func setupMenu() {
         let menu = NSMenu()
-        
-        let toggleItem = NSMenuItem(
-            title: isPreventingSleep ? "Disable (Allow Sleep)" : "Enable (Prevent Sleep)",
-            action: #selector(toggleSleep),
-            keyEquivalent: ""
-        )
-        toggleItem.target = self
-        menu.addItem(toggleItem)
-        
-        menu.addItem(NSMenuItem.separator())
         
         let quitItem = NSMenuItem(
             title: "Quit",
@@ -49,6 +45,18 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         menu.addItem(quitItem)
         
         statusItem.menu = menu
+    }
+    
+    @objc func statusBarButtonClicked(_ sender: NSStatusBarButton) {
+        let event = NSApp.currentEvent!
+        
+        if event.type == .rightMouseUp {
+            // Right click - show menu
+            statusItem.button?.performClick(nil)
+        } else {
+            // Left click - toggle sleep
+            toggleSleep()
+        }
     }
     
     @objc func toggleSleep() {
