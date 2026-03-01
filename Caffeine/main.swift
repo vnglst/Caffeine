@@ -1,0 +1,103 @@
+import Cocoa
+import IOKit.pwr_mgt
+
+class AppDelegate: NSObject, NSApplicationDelegate {
+    var statusItem: NSStatusItem!
+    var isPreventingSleep = false
+    var assertionID: IOPMAssertionID = 0
+    
+    func applicationDidFinishLaunching(_ aNotification: Notification) {
+        NSApp.setActivationPolicy(.accessory)
+        
+        // Get the system status bar
+        statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
+        
+        // Ensure we have a button
+        guard let button = statusItem.button else {
+            print("ERROR: Could not create status bar button")
+            return
+        }
+        
+        // Configure the button
+        button.image = NSImage(systemSymbolName: "zzz", accessibilityDescription: "Sleep")
+        button.image?.size = NSSize(width: 18, height: 18)
+        button.imagePosition = .imageLeft
+        
+        setupMenu()
+        
+        print("Caffeine started - look for the Zzz icon in your menu bar")
+    }
+    
+    func setupMenu() {
+        let menu = NSMenu()
+        
+        let toggleItem = NSMenuItem(
+            title: isPreventingSleep ? "☕ Disable (Allow Sleep)" : "☕ Enable (Prevent Sleep)",
+            action: #selector(toggleSleep),
+            keyEquivalent: ""
+        )
+        toggleItem.target = self
+        menu.addItem(toggleItem)
+        
+        menu.addItem(NSMenuItem.separator())
+        
+        let quitItem = NSMenuItem(
+            title: "Quit",
+            action: #selector(quit),
+            keyEquivalent: "q"
+        )
+        quitItem.target = self
+        menu.addItem(quitItem)
+        
+        statusItem.menu = menu
+    }
+    
+    @objc func toggleSleep() {
+        isPreventingSleep.toggle()
+        
+        if isPreventingSleep {
+            let reason = "Caffeine preventing sleep" as CFString
+            let result = IOPMAssertionCreateWithName(
+                kIOPMAssertionTypeNoIdleSleep as CFString,
+                IOPMAssertionLevel(kIOPMAssertionLevelOn),
+                reason,
+                &assertionID
+            )
+            
+            if result == kIOReturnSuccess {
+                print("Sleep prevention enabled")
+                updateIcon(active: true)
+            } else {
+                print("Failed to enable sleep prevention")
+                isPreventingSleep = false
+            }
+        } else {
+            IOPMAssertionRelease(assertionID)
+            print("Sleep prevention disabled")
+            updateIcon(active: false)
+        }
+        
+        setupMenu()
+    }
+    
+    func updateIcon(active: Bool) {
+        if let button = statusItem.button {
+            let symbolName = active ? "cup.and.saucer.fill" : "zzz"
+            button.image = NSImage(systemSymbolName: symbolName, accessibilityDescription: active ? "Active" : "Sleep")
+            button.image?.size = NSSize(width: 18, height: 18)
+        }
+    }
+    
+    @objc func quit() {
+        if isPreventingSleep {
+            IOPMAssertionRelease(assertionID)
+        }
+        NSApplication.shared.terminate(nil)
+    }
+}
+
+// Create and run the app
+let app = NSApplication.shared
+let delegate = AppDelegate()
+app.delegate = delegate
+app.run()
