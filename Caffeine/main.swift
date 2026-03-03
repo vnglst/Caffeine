@@ -60,21 +60,23 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         if isPreventingSleep {
             let reason = "Caffeine preventing sleep" as CFString
             let result = IOPMAssertionCreateWithName(
-                kIOPMAssertionTypePreventUserIdleSystemSleep as CFString,
+                kIOPMAssertionTypePreventUserIdleDisplaySleep as CFString,
                 IOPMAssertionLevel(kIOPMAssertionLevelOn),
                 reason,
                 &assertionID
             )
             
             if result == kIOReturnSuccess {
-                print("Sleep prevention enabled")
+                print("Sleep prevention enabled (assertionID: \(assertionID))")
+                ProcessInfo.processInfo.disableAutomaticTermination("Caffeine is preventing sleep")
                 updateIcon(active: true)
             } else {
-                print("Failed to enable sleep prevention")
+                print("Failed to enable sleep prevention (IOKit error: \(result))")
                 isPreventingSleep = false
             }
         } else {
             IOPMAssertionRelease(assertionID)
+            ProcessInfo.processInfo.enableAutomaticTermination("Caffeine is preventing sleep")
             print("Sleep prevention disabled")
             updateIcon(active: false)
         }

@@ -11,7 +11,8 @@ echo "Stopping running instance..."
 pkill -x "$APP_NAME" || true
 
 echo "Copying to /Applications..."
-cp -r "build/$APP_NAME.app" "/Applications/$APP_NAME.app"
+rm -rf "/Applications/$APP_NAME.app"
+cp -r "build/$APP_NAME.app" "/Applications/"
 
 echo "Launching $APP_NAME..."
 open "/Applications/$APP_NAME.app"
