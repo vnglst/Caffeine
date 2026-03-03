@@ -60,7 +60,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         if isPreventingSleep {
             let reason = "Caffeine preventing sleep" as CFString
             let result = IOPMAssertionCreateWithName(
-                kIOPMAssertionTypeNoIdleSleep as CFString,
+                kIOPMAssertionTypePreventUserIdleSystemSleep as CFString,
                 IOPMAssertionLevel(kIOPMAssertionLevelOn),
                 reason,
                 &assertionID
