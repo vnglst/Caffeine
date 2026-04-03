@@ -15,6 +15,7 @@ This project demonstrates how **personal software** can be created in the age of
 
 - Lives in your menu bar (no dock icon)
 - Click to toggle sleep prevention on/off
+- Prevents both display sleep and system idle sleep while active
 - Shows a coffee cup (☕) when active, Zzz when inactive
 - Clean, minimal code that's easy to understand and modify
 

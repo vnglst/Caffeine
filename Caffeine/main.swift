@@ -4,7 +4,8 @@ import IOKit.pwr_mgt
 class AppDelegate: NSObject, NSApplicationDelegate {
     var statusItem: NSStatusItem!
     var isPreventingSleep = false
-    var assertionID: IOPMAssertionID = 0
+    var systemSleepAssertionID: IOPMAssertionID = 0
+    var displaySleepAssertionID: IOPMAssertionID = 0
     
     func applicationDidFinishLaunching(_ aNotification: Notification) {
         NSApp.setActivationPolicy(.accessory)
@@ -58,29 +59,58 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         isPreventingSleep.toggle()
         
         if isPreventingSleep {
-            let reason = "Caffeine preventing sleep" as CFString
-            let result = IOPMAssertionCreateWithName(
-                kIOPMAssertionTypePreventUserIdleDisplaySleep as CFString,
-                IOPMAssertionLevel(kIOPMAssertionLevelOn),
-                reason,
-                &assertionID
+            let assertionReason = "Caffeine preventing sleep" as CFString
+            let systemSleepResult = createAssertion(
+                type: kIOPMAssertionTypePreventUserIdleSystemSleep as CFString,
+                reason: assertionReason,
+                assertionID: &systemSleepAssertionID
             )
             
-            if result == kIOReturnSuccess {
-                print("Sleep prevention enabled (assertionID: \(assertionID))")
+            guard systemSleepResult == kIOReturnSuccess else {
+                print("Failed to enable system sleep prevention (IOKit error: \(systemSleepResult))")
+                isPreventingSleep = false
+                return
+            }
+
+            let displaySleepResult = createAssertion(
+                type: kIOPMAssertionTypePreventUserIdleDisplaySleep as CFString,
+                reason: assertionReason,
+                assertionID: &displaySleepAssertionID
+            )
+            
+            if displaySleepResult == kIOReturnSuccess {
+                print("Sleep prevention enabled (systemAssertionID: \(systemSleepAssertionID), displayAssertionID: \(displaySleepAssertionID))")
                 ProcessInfo.processInfo.disableAutomaticTermination("Caffeine is preventing sleep")
                 updateIcon(active: true)
             } else {
-                print("Failed to enable sleep prevention (IOKit error: \(result))")
+                IOPMAssertionRelease(systemSleepAssertionID)
+                systemSleepAssertionID = 0
+                print("Failed to enable display sleep prevention (IOKit error: \(displaySleepResult))")
                 isPreventingSleep = false
             }
         } else {
-            IOPMAssertionRelease(assertionID)
+            releaseAssertion(&systemSleepAssertionID)
+            releaseAssertion(&displaySleepAssertionID)
             ProcessInfo.processInfo.enableAutomaticTermination("Caffeine is preventing sleep")
             print("Sleep prevention disabled")
             updateIcon(active: false)
         }
         
+    }
+
+    func createAssertion(type: CFString, reason: CFString, assertionID: inout IOPMAssertionID) -> IOReturn {
+        IOPMAssertionCreateWithName(
+            type,
+            IOPMAssertionLevel(kIOPMAssertionLevelOn),
+            reason,
+            &assertionID
+        )
+    }
+
+    func releaseAssertion(_ assertionID: inout IOPMAssertionID) {
+        guard assertionID != 0 else { return }
+        IOPMAssertionRelease(assertionID)
+        assertionID = 0
     }
     
     func updateIcon(active: Bool) {
@@ -93,7 +123,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     
     @objc func quit() {
         if isPreventingSleep {
-            IOPMAssertionRelease(assertionID)
+            releaseAssertion(&systemSleepAssertionID)
+            releaseAssertion(&displaySleepAssertionID)
         }
         NSApplication.shared.terminate(nil)
     }
