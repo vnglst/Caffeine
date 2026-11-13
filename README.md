@@ -57,8 +57,70 @@ In an era of bloated software, app stores, and endless subscriptions, this repre
 
 This is personal software. Use it, modify it, make it yours.
 
-## Publishing releases
+## Publishing releases manually
 
-Push a `vMAJOR.MINOR.PATCH` tag from `main` to build and publish a release.
-Configure the `HOMEBREW_TAP_TOKEN` Actions secret with Contents write access to
-`vnglst/homebrew-tap` so the workflow can update the Homebrew cask.
+Use an Apple Silicon Mac with Xcode Command Line Tools, Homebrew, and an
+authenticated GitHub CLI (`gh auth login`). Run these commands from this
+repository on `main`, after committing the app changes you want to release.
+Choose an unused version; `1.0.1` below is an example.
+
+Disable the tag workflow so it does not rebuild or replace the archive you
+publish manually. This setting persists until you re-enable it:
+
+```bash
+gh workflow disable release.yml --repo vnglst/Caffeine
+git pull --ff-only
+VERSION=1.0.1
+ARCHIVE="$(mktemp -d)/Caffeine-$VERSION.zip"
+```
+
+Build the app, verify its ad-hoc signature, and create the release ZIP:
+
+```bash
+VERSION="$VERSION" ./build.sh
+codesign --verify --deep --strict build/Caffeine.app
+ditto -c -k --sequesterRsrc --keepParent build/Caffeine.app "$ARCHIVE"
+shasum -a 256 "$ARCHIVE"
+```
+
+In `Casks/caffeine.rb`, set `version` to `$VERSION` and `sha256` to the
+checksum printed above. Commit the cask, tag that commit, and publish the ZIP:
+
+```bash
+git add Casks/caffeine.rb
+git commit -m "chore(release): Caffeine $VERSION"
+git tag "v$VERSION"
+git push origin main "v$VERSION"
+gh release create "v$VERSION" "$ARCHIVE" \
+  --repo vnglst/Caffeine --verify-tag --title "Caffeine $VERSION" --generate-notes
+```
+
+Update the shared tap using your local GitHub credentials. If you do not
+already have a sibling checkout, clone it once with
+`git clone https://github.com/vnglst/homebrew-tap.git ../homebrew-tap`.
+Then, from this app repository:
+
+```bash
+git -C ../homebrew-tap pull --ff-only
+cp Casks/caffeine.rb ../homebrew-tap/Casks/caffeine.rb
+git -C ../homebrew-tap add Casks/caffeine.rb
+git -C ../homebrew-tap commit -m "chore(release): Caffeine $VERSION"
+git -C ../homebrew-tap push
+```
+
+Check the published download and checksum through Homebrew:
+
+```bash
+brew update
+brew fetch --cask --force vnglst/tap/caffeine
+brew info --cask vnglst/tap/caffeine
+```
+
+Users can then install or upgrade with `brew install --cask vnglst/tap/caffeine`
+or `brew upgrade --cask caffeine`. No `HOMEBREW_TAP_TOKEN` secret is needed for
+this manual process.
+
+To switch back to automatic releases later, configure `HOMEBREW_TAP_TOKEN`
+with Contents write access limited to `vnglst/homebrew-tap`, harden the token
+handling in `.github/workflows/release.yml`, and run
+`gh workflow enable release.yml --repo vnglst/Caffeine`.
