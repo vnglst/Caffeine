@@ -25,14 +25,16 @@ rm -rf "$ICONSET_DIR"
 
 # Compile the Swift code
 echo "Compiling app..."
-swiftc \
-    -o "$MACOS_DIR/$APP_NAME" \
-    -framework Cocoa \
-    -framework IOKit \
-    Caffeine/main.swift
+swiftc -O -target arm64-apple-macosx12.0 -framework Cocoa -framework IOKit \
+    -o "$MACOS_DIR/$APP_NAME" Caffeine/main.swift
 
 # Copy Info.plist
 cp Caffeine/Info.plist "$CONTENTS_DIR/"
+if [[ -n "${VERSION:-}" ]]; then
+    /usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString $VERSION" "$CONTENTS_DIR/Info.plist"
+    /usr/libexec/PlistBuddy -c "Set :CFBundleVersion $VERSION" "$CONTENTS_DIR/Info.plist"
+fi
+codesign --force --sign - "$BUILD_DIR/$APP_NAME.app"
 
 echo ""
 echo "✓ Build complete!"
