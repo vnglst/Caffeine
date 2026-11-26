@@ -1,6 +1,6 @@
 cask "caffeine" do
-  version "1.0.0"
-  sha256 "93713ac9b20fb43880e48d9eb3134c610e94ce4a1776c3a2d57b9887f9b509c1"
+  version "1.1.0"
+  sha256 "c5bc275765ae1c22021a8db304d482cca9e77677b993ab239ed3bb9eccd98536"
 
   url "https://github.com/vnglst/Caffeine/releases/download/v#{version}/Caffeine-#{version}.zip"
   name "Caffeine"
