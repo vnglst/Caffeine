@@ -26,7 +26,7 @@ rm -rf "$ICONSET_DIR"
 # Compile the Swift code
 echo "Compiling app..."
 swiftc -O -target arm64-apple-macosx12.0 -framework Cocoa -framework IOKit \
-    -o "$MACOS_DIR/$APP_NAME" Caffeine/main.swift
+    -o "$MACOS_DIR/$APP_NAME" Caffeine/*.swift
 
 # Copy Info.plist
 cp Caffeine/Info.plist "$CONTENTS_DIR/"

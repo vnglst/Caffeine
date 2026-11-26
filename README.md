@@ -15,8 +15,13 @@ This project demonstrates how **personal software** can be created in the age of
 
 - Lives in your menu bar (no dock icon)
 - Click to toggle sleep prevention on/off
-- Prevents both display sleep and system idle sleep while active
-- Shows a coffee cup (☕) when active, Zzz when inactive
+- Prevents system idle sleep, and display sleep unless you uncheck "Keep display on"
+- Shows a filled coffee cup when active, an empty cup when off
+- Hyper mode (right click) also keeps the Mac awake with the lid closed, on battery
+  too. It asks for your administrator password once, so Caffeine can switch lid
+  sleep off and on without one, and it turns itself off at 20% battery, after 12
+  hours, or when the Mac runs hot (`defaults write com.yourname.caffeine
+  hyperMinBatteryPercent -int 30` and `hyperMaxHours -float 6` to tune)
 - Clean, minimal code that's easy to understand and modify
 
 ## Build & Run

@@ -21,4 +21,7 @@ cask "caffeine" do
   end
 
   uninstall quit: "com.yourname.caffeine"
+
+  # Hyper mode's passwordless rule; zap only, so upgrades keep it.
+  zap delete: "/etc/sudoers.d/caffeine"
 end
